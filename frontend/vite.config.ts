@@ -58,6 +58,6 @@
       port: 3000,
       host: '0.0.0.0',
       open: true,
-      allowedHosts: 'all',
+      allowedHosts: true,
     },
   });
