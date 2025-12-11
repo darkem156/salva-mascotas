@@ -424,6 +424,6 @@ app.get("/api/matches/lost/:lostId", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`🚀 API Salva-Mascotas escuchando en http://localhost:${port}`);
 });
