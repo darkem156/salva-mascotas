@@ -17,7 +17,7 @@ export function EditPetModal({ pet, onClose, onSave }: EditPetModalProps) {
     size: pet.size,
     color: pet.color,
     description: pet.description,
-    location: pet.location.address,
+    location: `Cerca de (${pet.lat.toFixed(2)}, ${pet.lng.toFixed(2)})`,
     phone: pet.phone || '',
     ownerName: pet.ownerName || '',
     reporterName: pet.reporterName || '',
@@ -77,7 +77,7 @@ export function EditPetModal({ pet, onClose, onSave }: EditPetModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.breed || !formData.location || !formData.description) {
+    if (!formData.breed || !formData.location || !formData.description) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -89,16 +89,21 @@ export function EditPetModal({ pet, onClose, onSave }: EditPetModalProps) {
       size: formData.size,
       color: formData.color,
       description: formData.description,
+      /*
       location: {
         address: formData.location,
         lat: pet.location.lat,
         lng: pet.location.lng,
       },
+      */
       phone: formData.phone,
-      photo: formData.photo,
+      photo_url: formData.photo,
       ownerName: pet.status === 'lost' ? formData.ownerName : undefined,
       reporterName: pet.status === 'found' ? formData.reporterName : undefined,
     };
+    delete updatedPet.photo;
+    delete updatedPet.location; // Remove location to avoid issues if not changed
+    console.log('Saving updated pet:', updatedPet);
 
     onSave(updatedPet);
   };
@@ -171,7 +176,6 @@ export function EditPetModal({ pet, onClose, onSave }: EditPetModalProps) {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className={`w-full px-4 py-3 rounded-lg border ${inputBorderClass} ${inputBgClass} ${textClass} focus:outline-none focus:ring-2 focus:ring-purple-500`}
-              required
             />
           </div>
 

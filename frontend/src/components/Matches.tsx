@@ -1,13 +1,14 @@
 import { Sparkles, MessageCircle, Check } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { Match } from '../types';
+import { Match, Pet } from '../types';
 
 interface MatchesProps {
   matches: Match[];
   onOpenChat: (match: Match) => void;
+  onViewPetDetail: (pet: Pet) => void;
 }
 
-export function Matches({ matches, onOpenChat }: MatchesProps) {
+export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) {
   const { theme } = useTheme();
   
   const bgClass = theme === 'light' ? 'bg-white' : 'bg-gray-900/50 backdrop-blur-xl border border-purple-500/20';
@@ -56,7 +57,7 @@ export function Matches({ matches, onOpenChat }: MatchesProps) {
       </div>
 
       <div className="space-y-6">
-        {matches.map((match) => (
+        {matches.map((match: Match) => (
           <div key={match.id} className={`${bgClass} rounded-2xl shadow-xl overflow-hidden transition-all duration-300`}>
             <div className={`p-4 ${
               theme === 'light'
@@ -91,7 +92,7 @@ export function Matches({ matches, onOpenChat }: MatchesProps) {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Lost Pet */}
-                <div className={`rounded-xl p-4 border-2 ${
+                <div onClick={() => onViewPetDetail({...match.lost_pets, status: 'lost'})} className={`cursor-pointer rounded-xl p-4 border-2 ${
                   theme === 'light' ? 'border-orange-200' : 'border-orange-500/30 bg-gray-800/30'
                 }`}>
                   <div className="flex items-center gap-2 mb-3">
@@ -104,22 +105,22 @@ export function Matches({ matches, onOpenChat }: MatchesProps) {
                     </div>
                   </div>
                   <img
-                    src={match.lostPet.photo}
-                    alt={match.lostPet.name}
+                    src={match.lost_pets.photo_url}
+                    alt={match.lost_pets.name}
                     className="w-full h-48 object-cover rounded-lg mb-3"
                   />
-                  <h3 className={`text-xl mb-2 ${textClass}`}>{match.lostPet.name}</h3>
+                  <h3 className={`text-xl mb-2 ${textClass}`}>{match.lost_pets.name}</h3>
                   <div className={`space-y-1 text-sm ${textSecondaryClass}`}>
-                    <p>🐕 {match.lostPet.breed}</p>
-                    <p>🎨 {match.lostPet.color}</p>
-                    <p>📏 {match.lostPet.size}</p>
-                    <p>📍 {match.lostPet.location.address}</p>
-                    <p>👤 {match.lostPet.ownerName}</p>
+                    <p>🐕 {match.lost_pets.breed}</p>
+                    <p>🎨 {match.lost_pets.color}</p>
+                    <p>📏 {match.lost_pets.size}</p>
+                    <p>📍 Cerca de {match.lost_pets.lat}, {match.lost_pets.lng}</p>
+                    <p>👤 {match.lost_pets.ownerName}</p>
                   </div>
                 </div>
 
                 {/* Found Pet */}
-                <div className={`rounded-xl p-4 border-2 ${
+                <div onClick={() => onViewPetDetail({...match.found_pets})} className={`cursor-pointer rounded-xl p-4 border-2 ${
                   theme === 'light' ? 'border-green-200' : 'border-green-500/30 bg-gray-800/30'
                 }`}>
                   <div className="flex items-center gap-2 mb-3">
@@ -132,28 +133,28 @@ export function Matches({ matches, onOpenChat }: MatchesProps) {
                     </div>
                   </div>
                   <img
-                    src={match.foundPet.photo}
+                    src={match.found_pets.photo_url}
                     alt="Mascota encontrada"
                     className="w-full h-48 object-cover rounded-lg mb-3"
                   />
                   <h3 className={`text-xl mb-2 ${textClass}`}>Mascota sin identificar</h3>
                   <div className={`space-y-1 text-sm ${textSecondaryClass}`}>
-                    <p>🐕 {match.foundPet.breed || 'Desconocido'}</p>
-                    <p>🎨 {match.foundPet.color}</p>
-                    <p>📏 {match.foundPet.size}</p>
-                    <p>📍 {match.foundPet.location.address}</p>
-                    <p>👤 {match.foundPet.reporterName}</p>
+                    <p>🐕 {match.found_pets.breed || 'Desconocido'}</p>
+                    <p>🎨 {match.found_pets.color}</p>
+                    <p>📏 {match.found_pets.size}</p>
+                    <p>📍 Cerca de {match.found_pets.lat}, {match.found_pets.lng}</p>
+                    <p>👤 {match.found_pets.reporterName}</p>
                   </div>
                 </div>
               </div>
 
               {/* Matched Features */}
-              <div className={`rounded-xl p-4 mb-4 ${
+              <div className={`hidden rounded-xl p-4 mb-4 ${
                 theme === 'light' ? 'bg-purple-50' : 'bg-purple-500/10 border border-purple-500/20'
               }`}>
                 <p className={`text-sm mb-2 ${textClass}`}>Características coincidentes:</p>
                 <div className="flex flex-wrap gap-2">
-                  {match.matchedFeatures.map((feature, idx) => (
+                  {match.matchedFeatures?.map((feature, idx) => (
                     <span
                       key={idx}
                       className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
@@ -172,7 +173,7 @@ export function Matches({ matches, onOpenChat }: MatchesProps) {
               {/* Action Button */}
               <button
                 onClick={() => onOpenChat(match)}
-                className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                className={`hidden w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
                   theme === 'light'
                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg'
                     : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl hover:shadow-purple-500/50'

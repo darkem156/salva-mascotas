@@ -379,13 +379,14 @@ app.post("/api/ai/match/:foundId", async (req, res) => {
 });
 
 // Obtener coincidencias de una mascota encontrada
-app.get("/api/matches/:foundId", async (req, res) => {
+app.get("/api/matches/found/:foundId", async (req, res) => {
   try {
     const foundId = req.params.foundId;
+    console.log(foundId)
 
     const { data, error } = await supabase
       .from("matches")
-      .select("*, lost_pets(*)")
+      .select("*, lost_pets(*), found_pets(*)")
       .eq("found_pet_id", foundId)
       .order("score", { ascending: false });
 
@@ -408,7 +409,7 @@ app.get("/api/matches/lost/:lostId", async (req, res) => {
 
     const { data, error } = await supabase
       .from("matches")
-      .select("*, found_pets(*)")
+      .select("*, found_pets(*), lost_pets(*)")
       .eq("lost_pet_id", lostId)
       .order("score", { ascending: false });
 
@@ -418,6 +419,86 @@ app.get("/api/matches/lost/:lostId", async (req, res) => {
     }
 
     res.json(data || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Get all matches
+app.get("/api/matches", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*, lost_pets(*), found_pets(*)")
+      .order("score", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error consultando coincidencias" });
+    }
+
+    res.json(data || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Endpoint para cuando se edite la publicacion
+app.put("/api/pets/:type/:id", async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    const updates = req.body;
+    console.log('Updating pet:', type, id, updates);
+
+    const tableName = type === "lost" ? "lost_pets" : "found_pets";
+
+    if (!tableName) {
+      return res.status(400).json({ error: "Tipo de mascota inválido" });
+    }
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error actualizando mascota" });
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Endpoint para eliminar una mascota
+app.delete("/api/pets/:type/:id", async (req, res) => {
+  try {
+    const { type, id } = req.params;
+
+    const tableName = type === "lost" ? "lost_pets" : type === "found" ? "found_pets" : null;
+
+    if (!tableName) {
+      return res.status(400).json({ error: "Tipo de mascota inválido" });
+    }
+
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error eliminando mascota" });
+    }
+
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error interno" });

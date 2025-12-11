@@ -87,6 +87,113 @@ export function SuccessStories({ onViewAllStories }: SuccessStoriesProps) {
   const textClass = theme === 'light' ? 'text-gray-900' : 'text-white';
   const textSecondaryClass = theme === 'light' ? 'text-gray-600' : 'text-gray-400';
 
+  const handleShare = async (story: typeof stories[0]) => {
+    const shareData = {
+      title: `Historia de éxito: ${story.name}`,
+      text: `${story.story} - ${story.location}`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error al compartir:', err);
+      }
+    } else {
+      // Fallback: copiar al portapapeles
+      const shareText = `${shareData.title}\n\n${shareData.text}\n\n${shareData.url}`;
+      navigator.clipboard.writeText(shareText);
+      alert('¡Enlace copiado al portapapeles!');
+    }
+  };
+
+  const handleDownload = async (story: typeof stories[0]) => {
+    try {
+      // Crear un canvas para generar la imagen con información
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Configurar el tamaño del canvas
+      canvas.width = 800;
+      canvas.height = 1000;
+
+      // Cargar la imagen
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = story.photo;
+
+      img.onload = () => {
+        // Dibujar fondo
+        ctx.fillStyle = theme === 'light' ? '#ffffff' : '#1f2937';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Dibujar la imagen
+        ctx.drawImage(img, 0, 0, canvas.width, 600);
+
+        // Dibujar información
+        ctx.fillStyle = theme === 'light' ? '#000000' : '#ffffff';
+        ctx.font = 'bold 32px Arial';
+        ctx.fillText(`✓ ${story.name} - REUNIDO`, 40, 680);
+
+        ctx.font = '24px Arial';
+        ctx.fillText(story.breed, 40, 720);
+
+        ctx.font = '20px Arial';
+        ctx.fillStyle = theme === 'light' ? '#666666' : '#9ca3af';
+        
+        // Wrap text for story
+        const words = story.story.split(' ');
+        let line = '';
+        let y = 760;
+        const maxWidth = 720;
+        
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + ' ';
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && i > 0) {
+            ctx.fillText(line, 40, y);
+            line = words[i] + ' ';
+            y += 28;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, 40, y);
+
+        ctx.font = 'bold 18px Arial';
+        ctx.fillStyle = theme === 'light' ? '#8b5cf6' : '#a78bfa';
+        ctx.fillText(`Match IA: ${story.similarity}% | ${story.location}`, 40, y + 50);
+
+        // Descargar la imagen
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `historia-exito-${story.name.toLowerCase()}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+          }
+        });
+      };
+
+      img.onerror = () => {
+        // Fallback: solo descargar la imagen original
+        const link = document.createElement('a');
+        link.download = `historia-exito-${story.name.toLowerCase()}.jpg`;
+        link.href = story.photo;
+        link.target = '_blank';
+        link.click();
+      };
+    } catch (error) {
+      console.error('Error al descargar:', error);
+      alert('No se pudo descargar la imagen');
+    }
+  };
+
   return (
     <section className="py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -120,14 +227,18 @@ export function SuccessStories({ onViewAllStories }: SuccessStoriesProps) {
                     className="w-full h-64 object-cover"
                   />
                   <div className="absolute top-3 right-3 flex gap-2">
-                    <button className={`p-2 rounded-full backdrop-blur-md transition-colors ${
+                    <button 
+                      onClick={() => handleShare(story)}
+                      className={`p-2 rounded-full backdrop-blur-md transition-colors ${
                       theme === 'light'
                         ? 'bg-white/90 hover:bg-white'
                         : 'bg-gray-900/90 hover:bg-gray-800 border border-green-500/30'
                     }`}>
                       <Share2 className={`w-4 h-4 ${textClass}`} />
                     </button>
-                    <button className={`p-2 rounded-full backdrop-blur-md transition-colors ${
+                    <button 
+                      onClick={() => handleDownload(story)}
+                      className={`p-2 rounded-full backdrop-blur-md transition-colors ${
                       theme === 'light'
                         ? 'bg-white/90 hover:bg-white'
                         : 'bg-gray-900/90 hover:bg-gray-800 border border-green-500/30'

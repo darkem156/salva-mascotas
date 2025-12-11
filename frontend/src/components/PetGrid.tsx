@@ -21,95 +21,8 @@ export function PetGrid({ lostPets, foundPets, onOpenChat, onViewAllPets,   onVi
   const textSecondaryClass = theme === 'light' ? 'text-gray-600' : 'text-gray-400';
   const cardBgClass = theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800/50 border-purple-500/10';
 
-  // Mock data for demonstration
-  const mockPets: Pet[] = [
-    {
-      id: 'mock-1',
-      name: 'Max',
-      photo_url: 'https://images.unsplash.com/photo-1689185083033-fd8512790d29',
-      breed: 'Golden Retriever',
-      size: 'grande',
-      color: 'Dorado',
-      location: { address: 'Col. Roma Norte, CDMX', lat: 19.4186, lng: -99.1599 },
-      description: 'Collar rojo, muy amigable. Se perdió el domingo en el parque.',
-      ownerName: 'María García',
-      phone: '55 1234 5678',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      status: 'lost',
-    },
-    {
-      id: 'mock-2',
-      name: 'Luna',
-      photo_url: 'https://images.unsplash.com/photo-1758385339088-945fe697ca1c',
-      breed: 'Gato Siamés',
-      size: 'pequeño',
-      color: 'Crema y negro',
-      location: { address: 'Col. Condesa, CDMX', lat: 19.4102, lng: -99.1716 },
-      description: 'Collar con cascabel. Muy asustadiza.',
-      ownerName: 'Carlos Ruiz',
-      phone: '55 2345 6789',
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      status: 'lost',
-    },
-    {
-      id: 'mock-3',
-      name: 'Desconocido',
-      photo_url: 'https://images.unsplash.com/photo-1685387714439-edef4bd70ef5',
-      breed: 'Beagle',
-      size: 'mediano',
-      color: 'Tricolor',
-      location: { address: 'Parque México, CDMX', lat: 19.4119, lng: -99.1695 },
-      description: 'Encontrado cerca del lago. Collar azul.',
-      reporterName: 'Ana López',
-      phone: '55 3456 7890',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      status: 'found',
-    },
-    {
-      id: 'mock-4',
-      name: 'Rocky',
-      photo_url: 'https://images.unsplash.com/photo-1760574920857-abc3226e3c6b',
-      breed: 'Husky Siberiano',
-      size: 'grande',
-      color: 'Gris y blanco',
-      location: { address: 'Col. Polanco, CDMX', lat: 19.4326, lng: -99.1910 },
-      description: 'Ojos azules característicos. Muy enérgico.',
-      ownerName: 'Pedro Sánchez',
-      phone: '55 4567 8901',
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      status: 'lost',
-    },
-    {
-      id: 'mock-5',
-      name: 'Bella',
-      photo_url: 'https://images.unsplash.com/photo-1561495376-dc9c7c5b8726',
-      breed: 'Labrador',
-      size: 'grande',
-      color: 'Café chocolate',
-      location: { address: 'Col. Del Valle, CDMX', lat: 19.3763, lng: -99.1641 },
-      description: 'Muy amigable, adora a los niños.',
-      ownerName: 'Laura Martínez',
-      phone: '55 5678 9012',
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      status: 'lost',
-    },
-    {
-      id: 'mock-6',
-      name: 'Desconocido',
-      photo_url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb',
-      breed: 'Mestizo',
-      size: 'mediano',
-      color: 'Negro',
-      location: { address: 'Col. Coyoacán, CDMX', lat: 19.3467, lng: -99.1619 },
-      description: 'Encontrado en el mercado. Sin collar.',
-      reporterName: 'Jorge Díaz',
-      phone: '55 6789 0123',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      status: 'found',
-    },
-  ];
 
-  let allPets = [...mockPets, ...lostPets, ...foundPets];
+  let allPets = [...lostPets, ...foundPets];
 
   // Apply filters
   if (filterType !== 'all') {
@@ -237,17 +150,6 @@ return (
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   
-                  {/* Favorite button */}
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${ 
-                    theme === 'light'
-                      ? 'bg-white hover:bg-red-600 hover:text-white'
-                      : 'bg-gray-900/80 backdrop-blur-sm hover:bg-gradient-to-r hover:from-pink-500 hover:to-red-500 text-white'
-                  }`}>
-                    <Heart className="w-5 h-5" />
-                  </button>
-
                   {/* Status badge */}
                   <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs text-white backdrop-blur-md ${
                     pet.status === 'lost' 
@@ -307,6 +209,7 @@ return (
           </div>
 
           {/* Load More */}
+          {/*
           <div className="text-center mt-12">
             <button
               className={`border-2 px-8 py-3 rounded-full transition-all ${
@@ -319,6 +222,7 @@ return (
               Ver Más Mascotas
             </button>
           </div>
+*/}
         </div>
       </div>
     </section>

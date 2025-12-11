@@ -20,7 +20,7 @@ export interface Pet {
 
 export interface Match {
   id: string;
-  lostPet: Pet;
+  lost_pets: Pet;
   found_pets: Pet;
   similarity: number;
   matchedFeatures: string[];

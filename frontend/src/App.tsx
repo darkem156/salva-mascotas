@@ -59,8 +59,16 @@ function AppContent() {
     setFoundPets(processedFoundPets);
   }
 
+  async function getMatches() {
+    const response = await fetch(`${API_URL}/api/matches`);
+    const matchesData = await response.json();
+    console.log('Matches Data:', matchesData);
+    setMatches(matchesData);
+  }
+
   useEffect(() => {
     getLostAndFoundPets();
+    getMatches();
   }, []);
 
 
@@ -111,14 +119,14 @@ function AppContent() {
       id: `chat-${match.id}`,
       matchId: match.id,
       participants: [
-        { id: 'user1', name: match.lostPet.ownerName || 'Dueño' },
+        { id: 'user1', name: match.lost_pets.ownerName || 'Dueño' },
         { id: 'user2', name: match.found_pets.reporterName || 'Quien encontró' },
       ],
       messages: [
         {
           id: 'msg1',
           senderId: 'system',
-          text: `Chat iniciado por coincidencia de ${match.similarity}% con ${match.lostPet.name}`,
+          text: `Chat iniciado por coincidencia de ${match.similarity}% con ${match.lost_pets.name}`,
           timestamp: new Date().toISOString(),
         },
       ],
@@ -142,34 +150,84 @@ function AppContent() {
     setEditingPet(pet);
   };
 
-  const handleSaveEditPet = (updatedPet: Pet) => {
-    if (updatedPet.status === 'lost') {
-      setLostPets(lostPets.map(p => p.id === updatedPet.id ? updatedPet : p));
-    } else {
-      setFoundPets(foundPets.map(p => p.id === updatedPet.id ? updatedPet : p));
+const handleSaveEditPet = async (updatedPet: Pet) => {
+  try {
+    const type = updatedPet.status; // "lost" o "found"
+    const id = updatedPet.id;
+    const petToSend = { ...updatedPet };
+    delete petToSend.status;
+    delete petToSend.timestamp;
+    if(type !== 'lost') {
+      delete petToSend.name;
     }
-    
-    // Update selected pet if it's currently being viewed
-    if (selectedPet?.id === updatedPet.id) {
-      setSelectedPet(updatedPet);
-    }
-    
-    setEditingPet(null);
-    alert('¡Publicación actualizada exitosamente!');
-  };
 
-  const handleDeletePet = (pet: Pet) => {
-    if (pet.status === 'lost') {
-      setLostPets(lostPets.filter(p => p.id !== pet.id));
-    } else {
-      setFoundPets(foundPets.filter(p => p.id !== pet.id));
+    // Hacer PUT al endpoint del backend
+    const response = await fetch(`${API_URL}/api/pets/${type}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(petToSend),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error("Error actualizando mascota:", err);
+      alert("Error actualizando mascota.");
+      return;
     }
-    
-    // Remove matches related to this pet
-    setMatches(matches.filter(m => m.lostPet.id !== pet.id && m.foundPet.id !== pet.id));
+
+    const savedPet = await response.json();
+    savedPet.status = type;
+
+    // Actualizar listas en frontend
+    if (savedPet.status === "lost") {
+      setLostPets((prev) =>
+        prev.map((p) => (p.id === savedPet.id ? savedPet : p))
+      );
+    } else {
+      setFoundPets((prev) =>
+        prev.map((p) => (p.id === savedPet.id ? savedPet : p))
+      );
+    }
+
+    // Actualizar la mascota seleccionada
+    if (selectedPet?.id === savedPet.id) {
+      setSelectedPet(savedPet);
+    }
+
+    setEditingPet(null);
+    alert("¡Publicación actualizada exitosamente!");
+  } catch (err) {
+    console.error(err);
+    alert("Error interno al actualizar.");
+  }
+};
+
+
+  const handleDeletePet = async (pet: Pet) => {
+    if (pet.status === 'lost') {
+      const response = await fetch(`${API_URL}/api/pets/lost/${pet.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        alert('Error al eliminar la publicación');
+        return;
+      }
+      //setLostPets(lostPets.filter(p => p.id !== pet.id));
+    } else {
+      const response = await fetch(`${API_URL}/api/pets/found/${pet.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        alert('Error al eliminar la publicación');
+        return;
+      }
+      //setFoundPets(foundPets.filter(p => p.id !== pet.id));
+    }
+    location.reload()
     
     alert('Publicación eliminada exitosamente');
-    handleBackFromDetail();
   };
 
   const handleMarkAsFound = (pet: Pet) => {
@@ -244,7 +302,7 @@ return (
       
       {activeTab === 'matches' && (
         <div className="py-12">
-          <Matches matches={matches} onOpenChat={handleOpenChat} />
+          <Matches matches={matches} onViewPetDetail={handleViewPetDetail} onOpenChat={handleOpenChat} />
         </div>
       )}
       

@@ -1,3 +1,6 @@
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { Pet, Match } from '../types';
@@ -24,6 +27,12 @@ interface PetDetailProps {
 }
 
 export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdit, onDelete, onMarkAsFound }: PetDetailProps) {
+  const DefaultIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+  console.log('Rendering PetDetail for pet:', pet, matches);
   const { theme } = useTheme();
   const [fetchedMatches, setFetchedMatches] = useState<Match[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -38,7 +47,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
 
   // Filter matches related to this pet
   const relatedMatches = matches.filter(
-    match => match.lostPet.id === pet.id || match.found_pets.id === pet.id
+    match => match.lost_pets.id === pet.id || match.found_pets.id === pet.id
   );
 
   async function fetchMatches() {
@@ -50,86 +59,12 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
       similarity: match.score * 100,
       found_pets: {
         ...match.found_pets,
-        name: 'Desconocido',
-        location: {
-          address: `Cerca de (${match.found_pets.lat.toFixed(2)}, ${match.found_pets.lng.toFixed(2)})`,
-        }
+        name: (pet.status === 'lost' ? match.found_pets.name : 'Desconocido'),
       }
     }));
-    console.log('Fetched Matches:', structuredData);
     setFetchedMatches(structuredData);
   }
 
-  // Generate mock matches for demonstration
-  const mockMatches: Match[] = pet.status === 'lost' ? [
-    {
-      id: 'match-demo-1',
-      lostPet: pet,
-      found_pets: {
-        id: 'found-demo-1',
-        name: 'Desconocido',
-        photo_url: 'https://images.unsplash.com/photo-1685387714439-edef4bd70ef5',
-        breed: pet.breed,
-        size: pet.size,
-        color: pet.color,
-        location: { address: 'Cerca de ' + pet.location.address, lat: pet.location.lat + 0.01, lng: pet.location.lng + 0.01 },
-        description: 'Encontrado vagando cerca de la zona',
-        reporterName: 'Ana López',
-        phone: '55 9876 5432',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        status: 'found',
-      },
-      similarity: 87,
-      matchedFeatures: ['Patrón de manchas', 'Color de ojos', 'Forma de orejas'],
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    },
-    {
-      id: 'match-demo-2',
-      lostPet: pet,
-      found_pets: {
-        id: 'found-demo-2',
-        name: 'Sin nombre',
-        photo_url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb',
-        breed: pet.breed === 'Golden Retriever' ? 'Labrador' : pet.breed,
-        size: pet.size,
-        color: pet.color,
-        location: { address: 'Parque cercano', lat: pet.location.lat - 0.02, lng: pet.location.lng + 0.01 },
-        description: 'Encontrado sin collar',
-        reporterName: 'Jorge Díaz',
-        phone: '55 3456 7890',
-        timestamp: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-        status: 'found',
-      },
-      similarity: 72,
-      matchedFeatures: ['Tamaño similar', 'Color aproximado'],
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    }
-  ] : [
-    {
-      id: 'match-demo-3',
-      lostPet: {
-        id: 'lost-demo-1',
-        name: pet.name === 'Desconocido' ? 'Max' : 'Luna',
-        photo_url: 'https://images.unsplash.com/photo-1689185083033-fd8512790d29',
-        breed: pet.breed,
-        size: pet.size,
-        color: pet.color,
-        location: { address: 'Cerca de donde lo encontraste', lat: pet.location.lat - 0.01, lng: pet.location.lng - 0.01 },
-        description: 'Se perdió hace 2 días',
-        ownerName: 'María García',
-        phone: '55 1234 5678',
-        timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        status: 'lost',
-      },
-      found_pets: pet,
-      similarity: 92,
-      matchedFeatures: ['Patrón de manchas', 'Color de ojos', 'Forma de orejas', 'Tamaño exacto'],
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    }
-  ];
 
   useEffect(() => {
     fetchMatches();
@@ -152,7 +87,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
       try {
         await navigator.share({
           title: `${pet.status === 'lost' ? 'Mascota Perdida' : 'Mascota Encontrada'}: ${pet.name}`,
-          text: `${pet.description} - ${pet.location.address}`,
+          text: `${pet.description} - Cerca de ${pet.lat}, ${pet.lng}`,
           url: window.location.href,
         });
       } catch (err) {
@@ -234,8 +169,8 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
         // Información adicional
         ctx.font = 'bold 20px Arial';
         ctx.fillStyle = theme === 'light' ? '#000000' : '#ffffff';
-        ctx.fillText(`📍 ${pet.location.address}`, 40, y + 50);
-        
+        ctx.fillText(`📍 Cerca de ${pet.lat}, ${pet.lng}`, 40, y + 50);
+
         ctx.font = '18px Arial';
         ctx.fillStyle = theme === 'light' ? '#8b5cf6' : '#a78bfa';
         ctx.fillText(`Color: ${pet.color} | Tamaño: ${pet.size} | ${pet.phone || 'Ver contacto en app'}`, 40, y + 80);
@@ -356,7 +291,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
                 <div className={`flex flex-wrap gap-4 mb-6 pb-6 border-b ${borderClass}`}>
                   <div className="flex items-center gap-2">
                     <MapPin className={`w-5 h-5 ${textSecondaryClass}`} />
-                    <span className={textClass}>{pet.location.address}</span>
+                    <span className={textClass}>Cerca de {pet.lat}, {pet.lng}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className={`w-5 h-5 ${textSecondaryClass}`} />
@@ -437,7 +372,8 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
 
                 <div className="space-y-4">
                   {allMatches.map((match: Match) => {
-                    const matchedPet = pet.status === 'lost' ? match.found_pets : match.lostPet;
+                    const matchedPet = pet.status === 'lost' ? match.found_pets : match.lost_pets;
+                    console.log('Rendering match:', match, 'for pet:', matchedPet, pet.status);
                     return (
                       <div
                         key={match.id}
@@ -446,7 +382,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
                             ? 'border-gray-200 hover:border-purple-500 hover:shadow-lg'
                             : 'border-purple-500/20 hover:border-purple-500/50 hover:shadow-purple-500/20'
                         }`}
-                        onClick={() => onViewMatch(matchedPet)}
+                        onClick={() => onViewMatch({...matchedPet, status: pet.status === 'lost' ? 'found' : 'lost'})}
                       >
                         <div className="flex gap-4">
                           {/* Match Image */}
@@ -500,7 +436,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
                             {/* Location */}
                             <div className="flex items-center gap-2 mb-2">
                               <MapPin className={`w-4 h-4 ${textSecondaryClass}`} />
-                              <span className={`text-sm ${textSecondaryClass}`}>{matchedPet.location.address}</span>
+                              <span className={`text-sm ${textSecondaryClass}`}>Cerca de {matchedPet.lat}, {matchedPet.lng}</span>
                             </div>
                           </div>
                         </div>
@@ -533,7 +469,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
                     </button>
                   )}
 
-                  {onMarkAsFound && pet.status === 'lost' && (
+                  {/*onMarkAsFound && pet.status === 'lost' && (
                     <button
                       onClick={() => onMarkAsFound(pet)}
                       className={`w-full px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all ${
@@ -545,7 +481,7 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
                       <CheckSquare className="w-5 h-5" />
                       Marcar como Encontrado
                     </button>
-                  )}
+                  )*/}
 
                   {onDelete && (
                     <button
@@ -626,21 +562,33 @@ export function PetDetail({ pet, matches, onBack, onOpenChat, onViewMatch, onEdi
               <div className="mb-4">
                 <div className="flex items-start gap-2 mb-2">
                   <MapPin className={`w-5 h-5 mt-1 ${textSecondaryClass}`} />
-                  <p className={textClass}>{pet.location.address}</p>
+                  <p className={textClass}>Cerca de {pet.lat}, {pet.lng}</p>
                 </div>
               </div>
 
               {/* Map Placeholder */}
-              <div className={`w-full h-48 rounded-lg overflow-hidden ${
-                theme === 'light' ? 'bg-gray-200' : 'bg-gray-800'
-              }`}>
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className={`w-12 h-12 mx-auto mb-2 ${textSecondaryClass}`} />
-                    <p className={textSecondaryClass}>Mapa interactivo</p>
-                  </div>
-                </div>
-              </div>
+    <div className="w-full h-48 rounded-lg overflow-hidden relative">
+      <MapContainer
+        center={[pet.lat, pet.lng]}
+        zoom={15}
+        scrollWheelZoom={false}
+        className="w-full h-full"
+      >
+        <TileLayer
+          url={
+            theme === "light"
+              ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          }
+        />
+
+        <Marker position={[pet.lat, pet.lng]}>
+          <Popup>
+            Ubicación aproximada <br /> de la mascota.
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
 
               <button
                 className={`w-full mt-4 px-4 py-2 rounded-lg transition-all border ${
