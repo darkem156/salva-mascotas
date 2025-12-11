@@ -568,8 +568,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
               {/* Map Placeholder */}
     <div className="w-full h-48 rounded-lg overflow-hidden relative">
+      {pet &&
       <MapContainer
-        center={[pet.lat, pet.lng]}
+        center={[pet.lat || pet.location.lat, pet.lng || pet.location.lng]}
         zoom={15}
         scrollWheelZoom={false}
         className="w-full h-full"
@@ -582,14 +583,16 @@ L.Marker.prototype.options.icon = DefaultIcon;
           }
         />
 
-        <Marker position={[pet.lat, pet.lng]}>
+        <Marker position={[pet.lat || pet.location.lat, pet.lng || pet.location.lng]}>
           <Popup>
             Ubicación aproximada <br /> de la mascota.
           </Popup>
         </Marker>
       </MapContainer>
+}
     </div>
 
+{/*
               <button
                 className={`w-full mt-4 px-4 py-2 rounded-lg transition-all border ${
                   theme === 'light'
@@ -599,6 +602,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
               >
                 Ver en Mapa Grande
               </button>
+*/}
             </div>
 
             {/* Safety Tips */}

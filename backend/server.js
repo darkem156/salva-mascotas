@@ -81,6 +81,7 @@ app.post(
     try {
       const {
         name,
+        ownerName,
         type,
         breed,
         color,
@@ -89,7 +90,7 @@ app.post(
         last_seen_date,
         lat,
         lng,
-        user_id,
+        phone,
       } = req.body;
 
       if (!req.file) {
@@ -120,15 +121,16 @@ app.post(
         .from("lost_pets")
         .insert({
           name,
+          ownerName,
           type,
           breed,
           color,
           size,
           description,
+          phone,
           last_seen_date: last_seen_date || new Date().toISOString(),
           lat: parseNumber(lat),
           lng: parseNumber(lng),
-          user_id: user_id || null,
           photo_url: publicUrl,
         })
         .select()
@@ -179,6 +181,7 @@ app.post(
   async (req, res) => {
     try {
       const {
+        reporterName,
         type,
         breed,
         color,
@@ -187,7 +190,7 @@ app.post(
         found_date,
         lat,
         lng,
-        user_id,
+        phone,
       } = req.body;
 
       if (!req.file) {
@@ -217,6 +220,7 @@ app.post(
       const { data, error } = await supabase
         .from("found_pets")
         .insert({
+          reporterName,
           type,
           breed,
           color,
@@ -225,8 +229,8 @@ app.post(
           found_date: found_date || new Date().toISOString(),
           lat: parseNumber(lat),
           lng: parseNumber(lng),
-          user_id: user_id || null,
           photo_url: publicUrl,
+          phone,
         })
         .select()
         .single();
@@ -431,11 +435,33 @@ app.get("/api/matches", async (req, res) => {
     const { data, error } = await supabase
       .from("matches")
       .select("*, lost_pets(*), found_pets(*)")
+      .eq("validated", false)
       .order("score", { ascending: false });
 
     if (error) {
       console.error(error);
       return res.status(500).json({ error: "Error consultando coincidencias" });
+    }
+
+    res.json(data || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Coincidencias ya validadas
+app.get("/api/matches/validated", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*, lost_pets(*), found_pets(*)")
+      .eq("validated", true)
+      .order("score", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error consultando coincidencias validadas" });
     }
 
     res.json(data || []);
@@ -496,6 +522,52 @@ app.delete("/api/pets/:type/:id", async (req, res) => {
     if (error) {
       console.error(error);
       return res.status(500).json({ error: "Error eliminando mascota" });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Marcar match como valido
+app.post("/api/matches/:id/confirm", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("matches")
+      .update({ validated: true })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error confirmando match" });
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// Borrar match
+app.delete("/api/matches/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from("matches")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Error eliminando match" });
     }
 
     res.json({ ok: true });

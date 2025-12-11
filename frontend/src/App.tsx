@@ -284,7 +284,7 @@ return (
             onViewAllPets={() => setActiveTab('map')}
             onViewPetDetail={handleViewPetDetail}
           />
-          <SuccessStories onViewAllStories={() => setActiveTab('home')} />
+          {/*<SuccessStories onViewAllStories={() => setActiveTab('home')} />*/}
         </>
       )}
 

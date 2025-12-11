@@ -1,6 +1,9 @@
 import { Sparkles, MessageCircle, Check } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useState, useEffect } from 'react';
 import { Match, Pet } from '../types';
+import { on } from 'events';
+import { API_URL } from '../config';
 
 interface MatchesProps {
   matches: Match[];
@@ -10,14 +13,158 @@ interface MatchesProps {
 
 export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) {
   const { theme } = useTheme();
+  const [pastMatches, setPastMatches] = useState<Match[]>([]);
   
   const bgClass = theme === 'light' ? 'bg-white' : 'bg-gray-900/50 backdrop-blur-xl border border-purple-500/20';
   const textClass = theme === 'light' ? 'text-gray-900' : 'text-white';
   const textSecondaryClass = theme === 'light' ? 'text-gray-600' : 'text-gray-400';
   const cardBgClass = theme === 'light' ? 'bg-gray-50' : 'bg-gray-800/50 border border-purple-500/10';
 
+  async function getPastMatches() {
+    try {
+      const response = await fetch(`${API_URL}/api/matches/validated`, {
+        method: 'GET',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPastMatches(data);
+      } else {
+        console.error('Error fetching past matches');
+      }
+    } catch (error) {
+      console.error('Error fetching past matches:', error);
+    }
+  }
+  useEffect(() => {
+    getPastMatches();
+  }, []);
+
+  const onConfirmMatch = async (matchId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/matches/${matchId}/confirm`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        alert('La coincidencia ha sido marcada como válida.');
+        location.reload();
+      } else {
+        alert('Error al confirmar la coincidencia.');
+      }
+    } catch (error) {
+      console.error('Error confirming match:', error);
+      alert('Error al confirmar la coincidencia.');
+    }
+  }
+
+  const onDeleteMatch = async (matchId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/matches/${matchId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        alert('La coincidencia ha sido eliminada.');
+        location.reload();
+      } else {
+        alert('Error al eliminar la coincidencia.');
+      }
+    } catch (error) {
+      console.error('Error deleting match:', error);
+      alert('Error al eliminar la coincidencia.');
+    }
+  }
+
+  function pastMatchesComponent() {
+    return (
+      <div className="max-w-4xl mx-auto px-4 mt-12">
+        <h2 className={`text-2xl mb-4 ${textClass}`}>Coincidencias Validadas</h2>
+        <div className="space-y-6">
+          {pastMatches.map((match: Match) => (
+            <div key={match.id} className={`${bgClass} rounded-2xl shadow-xl overflow-hidden transition-all duration-300`}>
+              <div className={`p-4 ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-purple-100 to-pink-100'
+                  : 'bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-b border-purple-500/20'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${
+                      theme === 'light' ? 'bg-white' : 'bg-gray-800'
+                    }`}>
+                      <Sparkles className={`w-5 h-5 ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`} />
+                    </div>
+                    <div>
+                      <p className={`text-sm ${textSecondaryClass}`}>Coincidencia de IA</p>
+                      <p className={`text-2xl ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>
+                        {match.score * 100}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm ${textSecondaryClass}`}>
+                      {new Date(match.found_pets.found_date).toLocaleDateString('es-MX')}
+                    </p>
+                    <p className={`text-xs ${textSecondaryClass}`}>
+                      {new Date(match.found_pets.found_date).toLocaleTimeString('es-MX')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Lost Pet */}
+                  <div onClick={() => onViewPetDetail(match.lost_pets)} className={`cursor-pointer rounded-xl p-4 border-2 ${
+                    theme === 'light' ? 'border-orange-200' : 'border-orange-500/30 bg-gray-800/30'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`px-3 py-1 rounded-full text-sm ${
+                        theme === 'light'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                      }`}>
+                        Mascota Perdida
+                      </div>
+                    </div>
+                    <img
+                      src={match.lost_pets.photo_url}
+                      alt={match.lost_pets.name}
+                      className="w-full h-48 object-cover rounded-lg mb-3"
+                    />
+                    <h3 className={`text-xl mb-2 ${textClass}`}>{match.lost_pets.name}</h3>
+                  </div>
+
+                  {/* Found Pet */}
+                  <div onClick={() => onViewPetDetail(match.found_pets)} className={`cursor-pointer rounded-xl p-4 border-2 ${
+                    theme === 'light' ? 'border-green-200' : 'border-green-500/30 bg-gray-800/30'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`px-3 py-1 rounded-full text-sm ${
+                        theme === 'light'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      }`}>
+                        Mascota Encontrada
+                      </div>
+                    </div>
+                    <img
+                      src={match.found_pets.photo_url}
+                      alt="Mascota encontrada"
+                      className="w-full h-48 object-cover rounded-lg mb-3"
+                    />
+                    <h3 className={`text-xl mb-2 ${textClass}`}>Mascota sin identificar</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (matches.length === 0) {
     return (
+      <>
       <div className="max-w-4xl mx-auto px-4">
         <div className={`${bgClass} rounded-2xl shadow-xl p-12 text-center transition-all duration-300`}>
           <Sparkles className={`w-16 h-16 mx-auto mb-4 ${theme === 'light' ? 'text-purple-400' : 'text-purple-500'}`} />
@@ -37,6 +184,8 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
           </p>
         </div>
       </div>
+      {pastMatches.length > 0 && pastMatchesComponent()}
+      </>
     );
   }
 
@@ -74,16 +223,16 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
                   <div>
                     <p className={`text-sm ${textSecondaryClass}`}>Coincidencia de IA</p>
                     <p className={`text-2xl ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>
-                      {match.similarity}%
+                      {match.score * 100}%
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`text-sm ${textSecondaryClass}`}>
-                    {new Date(match.timestamp).toLocaleDateString('es-MX')}
+                    {new Date(match.found_pets.found_date).toLocaleDateString('es-MX')}
                   </p>
                   <p className={`text-xs ${textSecondaryClass}`}>
-                    {new Date(match.timestamp).toLocaleTimeString('es-MX')}
+                    {new Date(match.found_pets.found_date).toLocaleTimeString('es-MX')}
                   </p>
                 </div>
               </div>
@@ -146,6 +295,29 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
                     <p>👤 {match.found_pets.reporterName}</p>
                   </div>
                 </div>
+              </div>
+              {/* Botones para marcar como valido y otro para borrar */}
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => onConfirmMatch(match.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                    theme === 'light'
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                  }`}
+                >
+                  Marcar como válido
+                </button>
+                <button
+                  onClick={() => onDeleteMatch(match.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                    theme === 'light'
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                  }`}
+                >
+                  Borrar
+                </button>
               </div>
 
               {/* Matched Features */}
