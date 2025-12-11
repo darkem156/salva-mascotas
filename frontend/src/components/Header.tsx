@@ -15,7 +15,7 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
     { id: 'report-lost', label: 'Reportar Perdido' },
     { id: 'report-found', label: 'Reportar Encontrado' },
     { id: 'matches', label: 'Coincidencias IA' },
-    { id: 'map', label: 'Mapa' },
+    //{ id: 'map', label: 'Mapa' },
   ];
 
   const bgClass = theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-900 border-purple-500/20';
