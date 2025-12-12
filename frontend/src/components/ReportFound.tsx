@@ -218,6 +218,7 @@ onSubmit(pet);
     setPhotoFile(null);
     
     alert('¡Reporte enviado! La IA buscará coincidencias automáticamente.');
+    location.reload()
   };
 
   return (
