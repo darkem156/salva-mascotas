@@ -184,7 +184,7 @@ return (
                   <div className={`space-y-2 mb-4 text-sm ${textSecondaryClass}`}>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      <span className="truncate">{pet.location.address}</span>
+                      <span className="truncate">{pet.location?.address}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />

@@ -60,7 +60,7 @@ export function ReportLost({ onSubmit }: ReportLostProps) {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
           .then(res => res.json())
           .then(data => {
-            const address = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            const address = data.display_name || `${lat?.toFixed(4)}, ${lng?.toFixed(4)}`;
             setFormData(prev => ({
               ...prev,
               address: address.split(',').slice(0, 3).join(','),
@@ -69,7 +69,7 @@ export function ReportLost({ onSubmit }: ReportLostProps) {
           .catch(() => {
             setFormData(prev => ({
               ...prev,
-              address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`,
+              address: `Lat: ${lat?.toFixed(4)}, Lng: ${lng?.toFixed(4)}`,
             }));
           })
           .finally(() => {
@@ -337,7 +337,7 @@ onSubmit(pet);
               </button>
               {formData.lat && formData.lng && (
                 <p className="text-sm text-red-600 mt-2">
-                  ✓ Ubicación guardada: {formData.lat.toFixed(4)}, {formData.lng.toFixed(4)}
+                  ✓ Ubicación guardada: {formData.lat?.toFixed(4)}, {formData.lng?.toFixed(4)}
                 </p>
               )}
             </div>

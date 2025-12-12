@@ -17,7 +17,7 @@ export function EditPetModal({ pet, onClose, onSave }: EditPetModalProps) {
     size: pet.size,
     color: pet.color,
     description: pet.description,
-    location: `Cerca de (${pet.lat.toFixed(2)}, ${pet.lng.toFixed(2)})`,
+    location: `Cerca de (${pet.lat?.toFixed(2)}, ${pet.lng?.toFixed(2)})`,
     phone: pet.phone || '',
     ownerName: pet.ownerName || '',
     reporterName: pet.reporterName || '',

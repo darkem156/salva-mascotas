@@ -38,7 +38,7 @@ function AppContent() {
       ...pet,
       // Get address based on coordinates (mocked for now)
       location: {
-        address: `Cerca de (${pet.lat.toFixed(2)}, ${pet.lng.toFixed(2)})`,
+        address: `Cerca de (${pet.lat?.toFixed(2)}, ${pet.lng?.toFixed(2)})`,
       },
       photo: pet.photo_url,
       status: 'lost',
@@ -51,7 +51,7 @@ function AppContent() {
     const processedFoundPets = foundPetsData.map((pet: Pet) => ({
       ...pet,
       location: {
-        address: `Cerca de (${pet.lat.toFixed(2)}, ${pet.lng.toFixed(2)})`,
+        address: `Cerca de (${pet.lat?.toFixed(2)}, ${pet.lng?.toFixed(2)})`,
       },
       photo: pet.photo_url,
       timestamp: new Date(pet.found_date).getTime(),
