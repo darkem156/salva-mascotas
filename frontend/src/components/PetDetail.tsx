@@ -295,11 +295,11 @@ L.Marker.prototype.options.icon = DefaultIcon;
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className={`w-5 h-5 ${textSecondaryClass}`} />
-                    <span className={textClass}>{getTimeAgo(pet.timestamp)}</span>
+                    <span className={textClass}>{getTimeAgo(new Date(pet.status === 'lost' ? pet.last_seen_date : pet.found_date).getTime())}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className={`w-5 h-5 ${textSecondaryClass}`} />
-                    <span className={textClass}>{new Date(pet.timestamp).toLocaleDateString('es-MX', { 
+                    <span className={textClass}>{new Date(pet.status === 'lost' ? pet.last_seen_date : pet.found_date).toLocaleDateString('es-MX', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric'
@@ -567,7 +567,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
               </div>
 
               {/* Map Placeholder */}
-    <div className="w-full h-48 rounded-lg overflow-hidden relative">
+    <div className="w-full h-48 rounded-lg overflow-hidden relative z-0">
       {pet &&
       <MapContainer
         center={[pet.lat || pet.location.lat, pet.lng || pet.location.lng]}

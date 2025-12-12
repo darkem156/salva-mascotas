@@ -113,7 +113,7 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Lost Pet */}
-                  <div onClick={() => onViewPetDetail(match.lost_pets)} className={`cursor-pointer rounded-xl p-4 border-2 ${
+                  <div onClick={() => onViewPetDetail({...match.lost_pets, status: 'lost'})} className={`cursor-pointer rounded-xl p-4 border-2 ${
                     theme === 'light' ? 'border-orange-200' : 'border-orange-500/30 bg-gray-800/30'
                   }`}>
                     <div className="flex items-center gap-2 mb-3">
@@ -134,7 +134,7 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
                   </div>
 
                   {/* Found Pet */}
-                  <div onClick={() => onViewPetDetail(match.found_pets)} className={`cursor-pointer rounded-xl p-4 border-2 ${
+                  <div onClick={() => onViewPetDetail({...match.found_pets, status: 'found'})} className={`cursor-pointer rounded-xl p-4 border-2 ${
                     theme === 'light' ? 'border-green-200' : 'border-green-500/30 bg-gray-800/30'
                   }`}>
                     <div className="flex items-center gap-2 mb-3">
@@ -269,7 +269,7 @@ export function Matches({ matches, onOpenChat, onViewPetDetail }: MatchesProps) 
                 </div>
 
                 {/* Found Pet */}
-                <div onClick={() => onViewPetDetail({...match.found_pets})} className={`cursor-pointer rounded-xl p-4 border-2 ${
+                <div onClick={() => onViewPetDetail({...match.found_pets, status: 'found'})} className={`cursor-pointer rounded-xl p-4 border-2 ${
                   theme === 'light' ? 'border-green-200' : 'border-green-500/30 bg-gray-800/30'
                 }`}>
                   <div className="flex items-center gap-2 mb-3">
